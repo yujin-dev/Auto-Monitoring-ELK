@@ -1,4 +1,5 @@
 from elasticsearch import Elasticsearch, helpers
+from datetime import datetime
 from sqlalchemy import create_engine,  select, column, table, text
 from orm_base import QueryReader, TableBase
 from config import *
@@ -16,8 +17,9 @@ class SessionLogger:
         self._table_reader = QueryReader(TARGET_SCHEMA.pg_stat_activity)
 
     def get_session(self):
+        to_timestamp = lambda x: f"TO_CHAR({x}, 'YYYY-MM-DD HH24:MI:SS')" if x in ["query_start"] else x
         columns = ["pid", "client_addr", "query_start", "state"]
-        self._table_reader.statement = text(f"select {','.join(columns)} from pg_stat_activity where state is not Null;")
+        self._table_reader.statement = text(f"select {','.join(list(map(to_timestamp, columns)))} from pg_stat_activity where state is not Null;")
         result = self._table_reader.read()
         result = [dict(zip(columns, res)) for res in result]
         return result
@@ -27,7 +29,10 @@ class SessionLogger:
         self.bulk_insert(index="session_logger", data=current_session)
 
     def bulk_insert(self, index, data):
-        data = [{"_index": index, "_source": res} for res in data]
+        def add_time(dt):
+            dt["timestamp"] = datetime.now()
+            return dt
+        data = [{"_index": index, "_source": add_time(res)} for res in data]
         helpers.bulk(self.es, data)
 
     def search(self, index, query):

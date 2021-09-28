@@ -1,4 +1,5 @@
 # DB session monitoring
+`config.py` 에서 기입한 정보를 기반으로 DB 세션을 기록하여 ES 서버에 저장
 
 ## docker로 ELK 설치
 ```console
