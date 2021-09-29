@@ -1,4 +1,5 @@
-from orm_base.table import *
+from _table import TableManager
+from sqlalchemy import create_engine
 
 
 class Schema(object):
@@ -9,10 +10,10 @@ class Schema(object):
         self.name = name
 
     def __setattr__(self, key, value):
-        if isinstance(value, TableBase):
+        if isinstance(value, TableManager):
             value.connect(self.engine)
         super().__setattr__(key, value)
 
     @classmethod
-    def connect(cls, engine):
-        cls.engine = engine
+    def connect(cls, db_address):
+        cls.engine = create_engine(db_address)

@@ -1,7 +1,21 @@
 from sqlalchemy import MetaData, Table, Column
 
 
-class TableBase:
+class SessionManager:
+
+    def __init__(self, engine):
+        self.engine = engine
+
+    def __enter__(self):
+        self.conn = self.engine.connect()
+        return self.conn
+
+    def __exit__(self, type, value, trace_back):
+        self.conn.close()
+        self.engine.dispose()
+
+
+class TableManager:
     metadata = MetaData()
 
     def __init__(self, table_name):
@@ -34,3 +48,13 @@ class TableBase:
 
     def reset_query(self):
         self.statement = None
+
+    def set_query(self, query):
+        self.statement = query
+
+    def read(self):
+        with SessionManager(self.engine) as connection:
+            exc = connection.execute(self.statement)
+            result = exc.fetchall()
+            self.reset_query()
+        return result
