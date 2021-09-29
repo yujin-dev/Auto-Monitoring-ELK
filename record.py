@@ -1,3 +1,4 @@
+import pandas as pd
 from elasticsearch import Elasticsearch, helpers
 from datetime import datetime
 from sqlalchemy import create_engine,  select, column, table, text
@@ -29,8 +30,10 @@ class SessionLogger:
         self.bulk_insert(index="session_logger", data=current_session)
 
     def bulk_insert(self, index, data):
+        now_time = datetime.now()
         def add_time(dt):
-            dt["timestamp"] = datetime.now()
+            dt["timestamp"] = now_time
+            dt["query_start"] = pd.to_datetime(dt["query_start"])
             return dt
         data = [{"_index": index, "_source": add_time(res)} for res in data]
         helpers.bulk(self.es, data)
