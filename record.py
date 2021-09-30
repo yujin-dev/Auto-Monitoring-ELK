@@ -2,18 +2,18 @@ import pandas as pd
 from elasticsearch import Elasticsearch, helpers
 from datetime import datetime
 from util import TableManager
-from config import *
 
 
 class SessionLogger:
 
-    _main_server = MAIN_ADDRESS
-    _es_server = ES_ADDRESS
+    _es_server = "http://localhost:9200/"
 
-    def __init__(self):
+    def __init__(self, server_address, alias=None):
         self.es = Elasticsearch(self._es_server)
         self.table = TableManager("pg_stat_activity")
-        self.table.connect(self._main_server)
+        self.table.connect(server_address)
+        self.alias = alias
+        self.now = datetime.now()
 
     def get_session(self):
         to_timestamp = lambda x: f"TO_CHAR({x}, 'YYYY-MM-DD HH24:MI:SS')" if x in ["query_start"] else x
@@ -24,24 +24,26 @@ class SessionLogger:
         return result
 
     def capture(self):
-        current_session = self.get_session()
-        self.bulk_insert(index="session_logger", data=current_session)
+        try:
+            current_session = self.get_session()
+            self.insert_session(data=current_session)
+            self.insert_status(data={"alias": self.alias, "status": "success", "timestamp": self.now, "msg": ""})
+        except Exception as e:
+            self.insert_status(data={"alias": self.alias, "status": "fail", "timestamp": self.now, "msg": str(e)})
+            # TODO : 알람메시지 전송할 수 있도록
 
-    def bulk_insert(self, index, data):
-        now_time = datetime.now()
-        def add_time(dt):
-            dt["timestamp"] = now_time
+    def insert_status(self, data):
+        self.es.index(index="server_status", document=data)
+
+    def insert_session(self, data):
+        def revise(dt):
+            dt["timestamp"] = self.now
             dt["query_start"] = pd.to_datetime(dt["query_start"])
+            dt["alias"] = self.alias
             return dt
-        data = [{"_index": index, "_source": add_time(res)} for res in data]
+        data = [{"_index": "session_logger", "_source": revise(res)} for res in data]
         helpers.bulk(self.es, data)
 
     def search(self, index, query):
         result = self.es.search(index=index, body=query)
         return result
-
-
-if __name__ == "__main__":
-
-    slg = SessionLogger()
-    slg.capture()

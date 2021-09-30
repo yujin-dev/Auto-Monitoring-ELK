@@ -1,3 +1,4 @@
+import sqlalchemy.exc
 from sqlalchemy import MetaData, Table, create_engine
 
 class SessionManager:
@@ -13,6 +14,9 @@ class SessionManager:
         self.conn.close()
         self.engine.dispose()
 
+
+class ServerException:
+    pass
 
 class TableManager:
     metadata = MetaData()
@@ -54,8 +58,11 @@ class TableManager:
     def read(self):
         if self.engine is None:
             raise ConnectionError(f"Table {self.name} should be connect to engine")
-        with SessionManager(self.engine) as connection:
-            exc = connection.execute(self.statement)
-            result = exc.fetchall()
-            self.reset_query()
-        return result
+        try:
+            with SessionManager(self.engine) as connection:
+                exc = connection.execute(self.statement)
+                result = exc.fetchall()
+                self.reset_query()
+            return result
+        except sqlalchemy.exc.SQLAlchemyError as e:
+            return e
