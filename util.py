@@ -1,5 +1,4 @@
-from sqlalchemy import MetaData, Table, Column
-
+from sqlalchemy import MetaData, Table, create_engine
 
 class SessionManager:
 
@@ -20,15 +19,15 @@ class TableManager:
 
     def __init__(self, table_name):
         self.name = table_name
-        self._statement = None
         self.engine = None
-        self.base = None
+        self._table = None
+        self._statement = None
 
     @property
     def target(self):
         if self.engine is None:
             raise ConnectionError(f"Table {self.name} should be connect to engine")
-        return self.base
+        return self._table
 
     @property
     def fields(self):
@@ -42,9 +41,9 @@ class TableManager:
     def statement(self, value):
         self._statement = value
 
-    def connect(self, engine):
-        self.engine = engine
-        self.base = Table(self.name, self.metadata, autoload_with=self.engine)
+    def connect(self, db_address):
+        self.engine = create_engine(db_address)
+        self._table = Table(self.name, self.metadata, autoload_with=self.engine)
 
     def reset_query(self):
         self.statement = None
@@ -53,6 +52,8 @@ class TableManager:
         self.statement = query
 
     def read(self):
+        if self.engine is None:
+            raise ConnectionError(f"Table {self.name} should be connect to engine")
         with SessionManager(self.engine) as connection:
             exc = connection.execute(self.statement)
             result = exc.fetchall()

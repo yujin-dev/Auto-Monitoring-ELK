@@ -1,7 +1,7 @@
 import pandas as pd
 from elasticsearch import Elasticsearch, helpers
 from datetime import datetime
-from _table import TableManager
+from util import TableManager
 from config import *
 
 
@@ -12,9 +12,8 @@ class SessionLogger:
 
     def __init__(self):
         self.es = Elasticsearch(self._es_server)
-        TARGET_SCHEMA.connect(self._main_server)
-        TARGET_SCHEMA.pg_stat_activity = TableManager("pg_stat_activity")
-        self.table = TARGET_SCHEMA.pg_stat_activity
+        self.table = TableManager("pg_stat_activity")
+        self.table.connect(self._main_server)
 
     def get_session(self):
         to_timestamp = lambda x: f"TO_CHAR({x}, 'YYYY-MM-DD HH24:MI:SS')" if x in ["query_start"] else x
