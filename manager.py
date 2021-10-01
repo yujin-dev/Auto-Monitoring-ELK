@@ -18,6 +18,7 @@ class SessionManager:
 class ServerException:
     pass
 
+
 class TableManager:
     metadata = MetaData()
 

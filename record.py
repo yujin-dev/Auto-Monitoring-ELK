@@ -1,7 +1,7 @@
 import pandas as pd
 from elasticsearch import Elasticsearch, helpers
 from datetime import datetime
-from util import TableManager
+from manager import TableManager
 
 
 class SessionLogger:
@@ -15,17 +15,20 @@ class SessionLogger:
         self.alias = alias
         self.now = datetime.now()
 
-    def get_session(self):
+    def get_session(self, filter: str = None):
         to_timestamp = lambda x: f"TO_CHAR({x}, 'YYYY-MM-DD HH24:MI:SS')" if x in ["query_start"] else x
         columns = ["pid", "client_addr", "query_start", "state"]
-        self.table.statement = f"select {','.join(list(map(to_timestamp, columns)))} from pg_stat_activity where state is not Null;"
+        query = f"select {','.join(list(map(to_timestamp, columns)))} from pg_stat_activity"
+        if filter:
+            query += f" where {filter}"
+        self.table.statement = query
         result = self.table.read()
         result = [dict(zip(columns, res)) for res in result]
         return result
 
     def capture(self):
         try:
-            current_session = self.get_session()
+            current_session = self.get_session(filter="state is not Null")
             self.insert_session(data=current_session)
             self.insert_status(data={"alias": self.alias, "status": "success", "timestamp": self.now, "msg": ""})
         except Exception as e:
