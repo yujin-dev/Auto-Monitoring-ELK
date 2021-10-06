@@ -27,16 +27,8 @@ class SessionLogger:
         return result
 
     def capture(self):
-        try:
-            current_session = self.get_session(filter="state is not Null")
-            self.insert_session(data=current_session)
-            self.insert_status(data={"alias": self.alias, "status": "success", "timestamp": self.now, "msg": ""})
-        except Exception as e:
-            self.insert_status(data={"alias": self.alias, "status": "fail", "timestamp": self.now, "msg": str(e)})
-            # TODO : 알람메시지 전송할 수 있도록
-
-    def insert_status(self, data):
-        self.es.index(index="server_status", document=data)
+        current_session = self.get_session(filter="state is not Null")
+        self.insert_session(data=current_session)
 
     def insert_session(self, data):
         def revise(dt):
