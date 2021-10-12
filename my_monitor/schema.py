@@ -1,4 +1,4 @@
-from manager import TableManager
+from sql_table import TableManager
 
 
 class Schema(object):

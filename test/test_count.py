@@ -1,4 +1,4 @@
-from record import SessionLogger
+from my_monitor.record import SessionLogger
 import unittest
 import socket
 from config import *
