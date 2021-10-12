@@ -17,7 +17,7 @@ class SessionLogger:
 
     def get_session(self, filter: str = None):
         to_timestamp = lambda x: f"TO_CHAR({x}, 'YYYY-MM-DD HH24:MI:SS')" if x in ["query_start"] else x
-        columns = ["pid", "client_addr", "query_start", "state"]
+        columns = ["pid", "client_addr", "query_start", "state", "state_change"]
         query = f"select {','.join(list(map(to_timestamp, columns)))} from pg_stat_activity"
         if filter:
             query += f" where {filter}"
