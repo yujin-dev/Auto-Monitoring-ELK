@@ -1,4 +1,4 @@
-from server_monitor.record import SessionLogger
+from yjdev_monitor import SessionManager
 import unittest
 import socket
 from config import *
@@ -7,7 +7,7 @@ from config import *
 class TestSession(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.counter = SessionLogger(server_address=MAIN_ADDRESS, alias="main_server")
+        self.counter = SessionManager(server_address=MAIN_ADDRESS, alias="main_server")
 
     def test_count(self):
         i = self.counter.get_session(filter="")
