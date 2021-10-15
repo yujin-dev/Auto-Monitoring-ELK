@@ -1,7 +1,7 @@
 import pandas as pd
 from elasticsearch import Elasticsearch, helpers
 from datetime import datetime
-from my_monitor.sql_table import TableManager
+from server_monitor.sql_table import TableManager
 
 
 class SessionLogger:

@@ -1,6 +1,7 @@
 config.py
-script.py
-batch.py
 .idea/
 __pycache__/
 .log
+build/
+dist/
+*.egg-info

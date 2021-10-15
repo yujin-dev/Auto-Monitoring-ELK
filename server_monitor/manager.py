@@ -1,4 +1,4 @@
-from my_monitor.record import SessionLogger
+from server_monitor.record import SessionLogger
 
 
 class SessionManager(SessionLogger):
