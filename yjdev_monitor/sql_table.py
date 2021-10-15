@@ -1,7 +1,7 @@
 import sqlalchemy.exc
 from sqlalchemy import MetaData, Table, create_engine
 
-class SessionManager:
+class SessionMaker:
 
     def __init__(self, engine):
         self.engine = engine
@@ -60,7 +60,7 @@ class TableManager:
         if self.engine is None:
             raise ConnectionError(f"Table {self.name} should be connect to engine")
         try:
-            with SessionManager(self.engine) as connection:
+            with SessionMaker(self.engine) as connection:
                 exc = connection.execute(self.statement)
                 result = exc.fetchall()
                 self.reset_query()
