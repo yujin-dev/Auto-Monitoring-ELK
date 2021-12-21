@@ -25,7 +25,7 @@ services:
       discovery.type: single-node
     networks:
       - elk
-    restart: always
+    # restart: always
 
   logstash:
     build:
@@ -41,6 +41,10 @@ services:
         source: ./logstash/pipeline
         target: /usr/share/logstash/pipeline
         read_only: true
+      - type: bind
+        source: ./logstash/postgresql-42.2.24.jar
+        target: /tmp/postgresql-42.2.24.jar
+        read_only: true
     ports:
       - "5044:5044"
       - "5000:5000/tcp"
@@ -49,11 +53,12 @@ services:
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
       LS_OPTS: "--config.reload.automatic"
+      TZ: "Asia/Seoul"
     networks:
       - elk
     depends_on:
       - elasticsearch
-    restart: always
+    # restart: always
 
   kibana:
     build:
@@ -71,7 +76,7 @@ services:
       - elk
     depends_on:
       - elasticsearch
-    restart: always
+    # restart: always
 
 networks:
   elk:
