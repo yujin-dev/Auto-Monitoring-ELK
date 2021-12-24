@@ -1,7 +1,9 @@
 config.py
 .idea/
 __pycache__/
-.log
+*.log
 build/
 dist/
 *.egg-info
+.env
+*sh
